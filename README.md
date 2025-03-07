@@ -58,7 +58,7 @@ RBR Discord Bot Installation Guide
 ------
 
 Install:
-
+----
 1. Install Python:
 
 Download Python from the official website. https://www.python.org/downloads/
