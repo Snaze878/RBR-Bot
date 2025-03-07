@@ -1,4 +1,4 @@
-[# RBR-Bot
+RBR-Bot
 
 RBR Discord Bot Installation Guide
 
