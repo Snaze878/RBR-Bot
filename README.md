@@ -1,4 +1,57 @@
-RBR-Bot
+About RBR Discord Bot
+-----
+Welcome to the RBR Discord Bot! This bot is designed to scrape online leaderboards and provide real-time updates on rally standings from https://rallysimfans.hu/. Whether you're part of a rally group looking to keep track of everyone's performance or just want to stay updated on the competition, this bot ensures you never miss a leaderboard update.
+
+------
+
+Features:
+
+Automated Leaderboard Updates: The bot scrapes the rally leaderboard and posts updates in Discord.
+
+Real-Time Leader Changes: Notifies the server when there is a new leader in a rally leg.
+
+Custom Commands: Retrieve top performers and detailed rally standings using simple commands.
+
+Dynamic Event Tracking: Supports multiple rally legs, ensuring full coverage of the competition.
+
+Info Retrieval: Provides important rally details like championship name and password.
+
+------
+
+Commands:
+
+!top5 - Displays the top 5 competitors from each rally leg.
+
+!leaderboard - Fetches the general leaderboard.
+
+!leg1, !leg2, ..., !leg6 - Displays the top 5 standings for a specific rally leg.
+
+!info - Retrieves essential rally details like competition name and access credentials.
+
+------
+
+How It Works:
+
+The bot uses web scraping to extract leaderboard data from your rallysimfans group. It processes the information and presents it in an easy-to-read format on Discord. By continuously monitoring changes, the bot ensures that users receive timely updates on race progress.
+
+------
+
+Open-Source & Licensing:
+
+The RBR Discord Bot is open-source software, released under the GNU General Public License v3. This means you are free to modify and distribute it as long as you comply with the license terms.
+
+------
+
+Contributions & Support:
+
+If you'd like to contribute to the project or report issues, feel free to get involved! The bot is continuously improving, and community feedback is always welcome.
+
+Enjoy the races and stay updated with RBR Discord Bot!
+
+
+
+
+
 
 RBR Discord Bot Installation Guide
 
