@@ -1,0 +1,22 @@
+#Here is the file to change all the specifics for the code to run correctly.
+
+#Discord Bot
+DISCORD_BOT_TOKEN=""
+DISCORD_CHANNEL_ID= 
+
+#League Info
+INFO_URL=https://rallysimfans.hu/rbr/rally_online.php?centerbox=rally_list_details.php&rally_id=80209 #Example URL
+RALLY_NAME=
+RALLY_PASSWORD=
+
+#URLS Needed
+#Leaderboard URL
+LEADERBOARD_URL=https://rallysimfans.hu/rbr/rally_online.php?centerbox=rally_results.php&rally_id=80209&cg=7 #Example URL
+
+#Each Leg URL
+LEG_1_URL=https://rallysimfans.hu/rbr/rally_online.php?centerbox=rally_results_stres.php&rally_id=80209&cg=7&stage_no=1 #Example URL
+LEG_2_URL=
+LEG_3_URL=
+LEG_4_URL=
+LEG_5_URL=
+LEG_6_URL=

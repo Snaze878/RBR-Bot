@@ -14,7 +14,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#Inital Commit
 
 import discord
 import asyncio
@@ -26,9 +25,15 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 from discord.ext import commands, tasks
+from dotenv import load_dotenv
+import os
 
-# Add the new URL for the general leaderboard
-LEADERBOARD_URL = "https://rallysimfans.hu/rbr/rally_online.php?centerbox=rally_results.php&rally_id=80209&cg=7"
+# Load environment variables from .env file
+load_dotenv()
+
+# Retrieve environment variables
+LEADERBOARD_URL = os.getenv("LEADERBOARD_URL") #Update Leaderboard in the .env file.
+
 
 # Function to scrape the general leaderboard
 def scrape_general_leaderboard(url, table_class="rally_results"):
@@ -111,16 +116,16 @@ def scrape_leaderboard(url, table_class="rally_results_stres_right"):
             diff_prev = columns[3].text.strip()
             diff_first = columns[4].text.strip()
             
-            # Split the name and vehicle into 3 parts
+            # Split the name and vehicle into 3 parts. Have to do this due to how the website table is setup. 
             name_parts = name_vehicle.split(" / ", 1)
             if len(name_parts) > 1:
-                name1 = name_parts[0].strip()  # "stonebeel"
-                name2_vehicle = name_parts[1].strip()  # "Trevor BonesteelCitroen"
+                name1 = name_parts[0].strip()  # "Name Before the /"
+                name2_vehicle = name_parts[1].strip()  # "Name after the /"
                 # Now, separate the name from the vehicle
-                for vehicle_start in ["Citroen", "Ford", "Peugeot"]:  # Extend this list if needed
+                for vehicle_start in ["Citroen", "Ford", "Peugeot", "Opel"]:  # Extend this list if needed
                     if vehicle_start in name2_vehicle:
-                        name2 = name2_vehicle.split(vehicle_start, 1)[0].strip()  # "Trevor Bonesteel"
-                        vehicle = vehicle_start + name2_vehicle.split(vehicle_start, 1)[1].strip()  # "Citroen C2 R2 Max"
+                        name2 = name2_vehicle.split(vehicle_start, 1)[0].strip()  # "Name"
+                        vehicle = vehicle_start + name2_vehicle.split(vehicle_start, 1)[1].strip()  # "Vehicle"
                         break
                 else:
                     # If no vehicle is found in the second part, treat the entire second part as name
@@ -146,17 +151,20 @@ def scrape_leaderboard(url, table_class="rally_results_stres_right"):
     return leaderboard
 
 # Bot setup
-TOKEN = ""  # Replace with your bot token
+
+TOKEN = os.getenv("DISCORD_BOT_TOKEN")  # Discord bot token. Put it into the .env file.
+
+# Urls will all go into the .env file.
 URLS = {
-    "Leg 1": "https://rallysimfans.hu/rbr/rally_online.php?centerbox=rally_results_stres.php&rally_id=80209&cg=7&stage_no=1",
-    "Leg 2": "https://rallysimfans.hu/rbr/rally_online.php?centerbox=rally_results_stres.php&rally_id=80209&cg=7&stage_no=2",
-    "Leg 3": "https://rallysimfans.hu/rbr/rally_online.php?centerbox=rally_results_stres.php&rally_id=80209&cg=7&stage_no=3",
-    "Leg 4": "https://rallysimfans.hu/rbr/rally_online.php?centerbox=rally_results_stres.php&rally_id=80209&cg=7&stage_no=4",
-    "Leg 5": "https://rallysimfans.hu/rbr/rally_online.php?centerbox=rally_results_stres.php&rally_id=80209&cg=7&stage_no=5",
-    "Leg 6": "https://rallysimfans.hu/rbr/rally_online.php?centerbox=rally_results_stres.php&rally_id=80209&cg=7&stage_no=6"
+    "Leg 1": os.getenv("LEG_1_URL"),
+    "Leg 2": os.getenv("LEG_2_URL"),
+    "Leg 3": os.getenv("LEG_3_URL"),
+    "Leg 4": os.getenv("LEG_4_URL"),
+    "Leg 5": os.getenv("LEG_5_URL"),
+    "Leg 6": os.getenv("LEG_6_URL")
 }
 
-CHANNEL_ID =   # Replace with your Discord channel ID
+CHANNEL_ID = int(os.getenv("DISCORD_CHANNEL_ID") ) # Discord channel ID. Put it into the .env file.
 
 intents = discord.Intents.default()
 intents.message_content = True  
@@ -208,7 +216,7 @@ async def on_message(message):
             if leaderboard:
                 print(f"Top 5 extracted from {leg_name}: {leaderboard[:5]}")
                 top5 = "\n".join([f"**{entry['position']}**. **{entry['name']}** :race_car: {entry['vehicle']} :hourglass: ({entry['diff_first']})" for entry in leaderboard[:5]])
-                await message.channel.send(f"**Top 5 Leaderboard for {leg_name}:**\n{top5}")
+                await message.channel.send(f"-----------------\n\n**Top 5 Leaderboard for {leg_name}:**\n{top5}\n\n")
             else:
                 await message.channel.send(f"Couldn't retrieve leaderboard for {leg_name}.")
     
@@ -229,17 +237,28 @@ async def on_message(message):
         leaderboard = scrape_general_leaderboard(LEADERBOARD_URL)
         if leaderboard:
             top5 = "\n".join([f"**{entry['position']}**. **{entry['name']}** :race_car: {entry['vehicle']} :hourglass: ({entry['diff_first']})" for entry in leaderboard[:10]])
-            await message.channel.send(f"**Top 5 General Leaderboard:**\n{top5}")
+            await message.channel.send(f"**General Leaderboard:**\n{top5}")
         else:
             await message.channel.send("Couldn't retrieve the general leaderboard.")
 
 
- # Handle !info command
+    # Load additional environment variables for !info command
+    INFO_URL = os.getenv("INFO_URL")
+    RALLY_NAME = os.getenv("RALLY_NAME")
+    RALLY_PASSWORD = os.getenv("RALLY_PASSWORD")
+
+    # Handle !info command
     if message.content.startswith("!info"):
-        url = "https://rallysimfans.hu/rbr/rally_online.php?centerbox=rally_list_details.php&rally_id=80209"
-        await message.channel.send(f"**Here is the link:** {url}\n**Rally Championship Name:** BWRL\n**Password: **BWRL")
-    
-    # Ensure the bot processes commands as well
+        if INFO_URL and RALLY_NAME and RALLY_PASSWORD:
+            await message.channel.send(
+                f"**Here is the link:** {INFO_URL}\n"
+                f"**Rally Championship Name:** {RALLY_NAME}\n"
+                f"**Password:** {RALLY_PASSWORD}"
+            )
+        else:
+            await message.channel.send("Error: Some information is missing in the `.env` file.")
+
+    # Ensure bot continues processing other commands
     await bot.process_commands(message)
 
 bot.run(TOKEN)
