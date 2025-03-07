@@ -1,7 +1,0 @@
-!info – Provides a link to the main page, along with the group name and password.
-
-!leaderboard – Displays the current leaderboard for the final standings.
-
-!legX – Shows the top 5 drivers for a specific leg (replace "X" with the leg number, e.g., !leg1, !leg2, etc.).
-
-!top5 – Displays all legs and the top 5 drivers for each one.
