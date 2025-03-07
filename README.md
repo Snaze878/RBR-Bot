@@ -72,14 +72,16 @@ During installation, make sure to "Add Python.exe to PATH" on the first screen.
 Run the following commands in a terminal:
 
 pip install discord.py requests beautifulsoup4
+
 pip install python-dotenv
+
 pip install selenium
 
 ------
 
 3. Create a Discord Bot:
 
-Go to Discord Developer Applications
+Go to Discord Developer Applications Website: https://discord.com/developers/applications
 
 Click New Application, name your bot, and build it.
 
