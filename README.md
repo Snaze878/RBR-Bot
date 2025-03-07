@@ -127,6 +127,8 @@ Download RBR_Bot.py and the .env file.
 
 Place them under your user directory, e.g., C:\Users\YOUR_NAME.
 
+Note on the .env file that you might have to re-name it. Make sure it's just called ".env"
+
 ------
 
 7. Configure the .env File:
