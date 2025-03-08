@@ -49,12 +49,13 @@ If you'd like to contribute to the project or report issues, feel free to get in
 Enjoy the races and stay updated with RBR Discord Bot!
 
 
+Support Server
+--------
 
-
+https://discord.gg/HbRaM2taQG
 
 
 RBR Discord Bot Installation Guide
-
 ------
 
 Install:
