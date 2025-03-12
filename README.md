@@ -20,8 +20,6 @@ Info Retrieval: Provides important rally details like championship name and pass
 
 Commands:
 
-!top5 - Displays the top 5 competitors from each rally leg.
-
 !leaderboard - Fetches the general leaderboard.
 
 !leg1, !leg2, ..., !leg6 - Displays the top 5 standings for a specific rally leg.
