@@ -49,12 +49,13 @@ If you'd like to contribute to the project or report issues, feel free to get in
 Enjoy the races and stay updated with RBR Discord Bot!
 
 
+Support Server
+--------
 
-
+https://discord.gg/HbRaM2taQG
 
 
 RBR Discord Bot Installation Guide
-
 ------
 
 Install:
@@ -126,6 +127,8 @@ Select the Discord server where you want to add the bot.
 Download RBR_Bot.py and the .env file.
 
 Place them under your user directory, e.g., C:\Users\YOUR_NAME.
+
+Note on the .env file that you might have to re-name it. Make sure it's just called ".env"
 
 ------
 
