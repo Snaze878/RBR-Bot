@@ -122,7 +122,7 @@ def scrape_leaderboard(url, table_class="rally_results_stres_right"):
                 name1 = name_parts[0].strip()  # "Name Before the /"
                 name2_vehicle = name_parts[1].strip()  # "Name after the /"
                 # Now, separate the name from the vehicle
-                for vehicle_start in ["Citroen", "Ford", "Peugeot", "Opel"]:  # Extend this list if needed
+                for vehicle_start in ["Citroen", "Ford", "Peugeot", "Opel", "Abarth", "Skoda"]:  # Extend this list if needed
                     if vehicle_start in name2_vehicle:
                         name2 = name2_vehicle.split(vehicle_start, 1)[0].strip()  # "Name"
                         vehicle = vehicle_start + name2_vehicle.split(vehicle_start, 1)[1].strip()  # "Vehicle"
@@ -156,12 +156,12 @@ TOKEN = os.getenv("DISCORD_BOT_TOKEN")  # Discord bot token. Put it into the .en
 
 # Urls will all go into the .env file.
 URLS = {
-    "Leg 1": os.getenv("LEG_1_URL"),
-    "Leg 2": os.getenv("LEG_2_URL"),
-    "Leg 3": os.getenv("LEG_3_URL"),
-    "Leg 4": os.getenv("LEG_4_URL"),
-    "Leg 5": os.getenv("LEG_5_URL"),
-    "Leg 6": os.getenv("LEG_6_URL")
+    "Leg 1": [os.getenv("LEG_1_1"), os.getenv("LEG_1_2"), os.getenv("LEG_1_3")],
+    "Leg 2": [os.getenv("LEG_2_1"), os.getenv("LEG_2_2"), os.getenv("LEG_2_3")],
+    "Leg 3": [os.getenv("LEG_3_1"), os.getenv("LEG_3_2"), os.getenv("LEG_3_3")],
+    "Leg 4": [os.getenv("LEG_4_1"), os.getenv("LEG_4_2"), os.getenv("LEG_4_3")],
+    "Leg 5": [os.getenv("LEG_5_1"), os.getenv("LEG_5_2"), os.getenv("LEG_5_3")],
+    "Leg 6": [os.getenv("LEG_6_1"), os.getenv("LEG_6_2"), os.getenv("LEG_6_3")]
 }
 
 CHANNEL_ID = int(os.getenv("DISCORD_CHANNEL_ID") ) # Discord channel ID. Put it into the .env file.
@@ -183,21 +183,26 @@ async def check_leader_change():
         return
 
     while not bot.is_closed():
-        for leg_name, url in URLS.items():
-            leaderboard = scrape_leaderboard(url)
-            if leaderboard:
-                current_leader = leaderboard[0]["name"]
-                if url in previous_leaders:
-                    previous_leader = previous_leaders[url]
-                    # Only send a message if the leader has changed
-                    if previous_leader != current_leader:
-                        await channel.send(f"New leader for {leg_name}: {current_leader} (previously {previous_leader})! URL {url}")
+        for leg_name, urls in URLS.items():
+            valid_urls = [url for url in urls if url]  # Remove None values
 
-                
-                # Update the previous leader to the current leader
-                previous_leaders[url] = current_leader
+            if not valid_urls:  # Skip if no valid URLs
+                print(f"Skipping {leg_name}: No valid URLs found.")
+                continue
+            
+            for url in valid_urls:
+                leaderboard = scrape_leaderboard(url)
+                if leaderboard:
+                    current_leader = leaderboard[0]["name"]
+                    if url in previous_leaders:
+                        previous_leader = previous_leaders[url]
+                        if previous_leader != current_leader:
+                            await channel.send(f"New leader for {leg_name}: {current_leader} (previously {previous_leader})! URL {url}")
+
+                    # Update the previous leader
+                    previous_leaders[url] = current_leader
         
-        await asyncio.sleep(60)  # Adjust wait time if needed to refresh
+        await asyncio.sleep(60)  # Adjust refresh time as needed
 
 @bot.event
 async def on_ready():
@@ -209,28 +214,48 @@ async def on_message(message):
     if message.author == bot.user:
         return
     
-    # Handle !top5 command
-    if message.content.startswith("!top5"):
-        for leg_name, url in URLS.items():
-            leaderboard = scrape_leaderboard(url)
-            if leaderboard:
-                print(f"Top 5 extracted from {leg_name}: {leaderboard[:5]}")
-                top5 = "\n".join([f"**{entry['position']}**. **{entry['name']}** :race_car: {entry['vehicle']} :hourglass: ({entry['diff_first']})" for entry in leaderboard[:5]])
-                await message.channel.send(f"-----------------\n\n**Top 5 Leaderboard for {leg_name}:**\n{top5}\n\n")
-            else:
-                await message.channel.send(f"Couldn't retrieve leaderboard for {leg_name}.")
     
-    # Handle !leg1, !leg2, etc. dynamically
-    elif message.content.startswith("!leg"):
-        leg_number = message.content[4:]
-        if leg_number in ['1', '2', '3', '4', '5', '6']:
-            url = URLS[f"Leg {leg_number}"]
-            leaderboard = scrape_leaderboard(url, table_class="rally_results_stres_left")
-            if leaderboard:
-                top5 = "\n".join([f"**{entry['position']}**. **{entry['name']}** :race_car: {entry['vehicle']} :hourglass: ({entry['diff_first']})" for entry in leaderboard[:5]])
-                await message.channel.send(f"**Top 5 for Leg {leg_number}:**\n{top5}")
-            else:
-                await message.channel.send(f"Couldn't retrieve leaderboard for Leg {leg_number}.")
+    # Handle !leg command dynamically
+    if message.content.startswith("!leg"):
+        leg_number = message.content[4:].strip()  # Extract leg number from the command
+
+        if leg_number not in ['1', '2', '3', '4', '5', '6']:
+            await message.channel.send("Invalid leg number! Please use `!leg1`, `!leg2`, etc.")
+            return
+
+        # Get available URLs for this leg, filtering out None values
+        leg_urls = [url for url in URLS.get(f"Leg {leg_number}", []) if url]
+
+        if not leg_urls:
+            await message.channel.send(f"⚠️ No leaderboard data available for Leg {leg_number}.")
+            return
+
+        # Scrape and format leaderboards dynamically
+        def scrape_and_format(url, source):
+            leaderboard = scrape_leaderboard(url, table_class="rally_results_stres_right")  # Adjust table class if needed
+            if not leaderboard:
+                return f"❌ No leaderboard data available from {source}."
+            
+            top_entries = leaderboard[:5]  # Get only the top 5
+            formatted_results = "\n".join(
+                [f"**{entry['position']}**. **{entry['name']}** 🏎️ {entry['vehicle']} ⏳ ({entry['diff_first']})"
+                 for entry in top_entries]
+            )
+            return f"🏁 **Top 5 for {source}:**\n{formatted_results}"
+
+        # Prepare the output
+        leaderboard_messages = []
+        for idx, url in enumerate(leg_urls, start=1):
+            result = scrape_and_format(url, f"Leg {leg_number} (Track {idx})")
+            if result:
+                leaderboard_messages.append(result)
+
+        # Combine all results with separators
+        response = "\n\n────────────────────\n\n".join(leaderboard_messages) if leaderboard_messages else f"⚠️ No data available for Leg {leg_number}."
+        
+        await message.channel.send(response)
+
+
     
     # Handle !leaderboard command
     elif message.content.startswith("!leaderboard"):
