@@ -122,7 +122,7 @@ def scrape_leaderboard(url, table_class="rally_results_stres_right"):
                 name1 = name_parts[0].strip()  # "Name Before the /"
                 name2_vehicle = name_parts[1].strip()  # "Name after the /"
                 # Now, separate the name from the vehicle
-                for vehicle_start in ["Citroen", "Ford", "Peugeot", "Opel", "Abarth", "Skoda"]:  # Extend this list if needed
+                for vehicle_start in ["Citroen", "Ford", "Peugeot", "Opel", "Abarth", "Skoda", "Mitsubishi", "Subaru", "BMW", "GM", "GMC", "Toyota", "Honda", "Suzuki", "Acura", "Audi", "Volkswagen", "Chevorlet", "Volvo", "Kia", "Jeep", "Dodge", "Mazda", "Hyundai", "Buick", "MINI", "Porsche", "Mercedes", "Land Rover", "Acura", "Alfa Romeo", "Lancia", "Toyota Celica"]:  # Extend this list if needed
                     if vehicle_start in name2_vehicle:
                         name2 = name2_vehicle.split(vehicle_start, 1)[0].strip()  # "Name"
                         vehicle = vehicle_start + name2_vehicle.split(vehicle_start, 1)[1].strip()  # "Vehicle"
@@ -176,33 +176,53 @@ previous_leaders = {}
 async def check_leader_change():
     global previous_leaders
     await bot.wait_until_ready()
-    
+
     channel = bot.get_channel(CHANNEL_ID)
     if not channel:
         print("Error: Discord channel not found!")
         return
 
     while not bot.is_closed():
-        for leg_name, urls in URLS.items():
-            valid_urls = [url for url in urls if url]  # Remove None values
+        try:
+            for leg_name, urls in URLS.items():
+                for idx, url in enumerate(urls):
+                    if not url:
+                        continue
 
-            if not valid_urls:  # Skip if no valid URLs
-                print(f"Skipping {leg_name}: No valid URLs found.")
-                continue
-            
-            for url in valid_urls:
-                leaderboard = scrape_leaderboard(url)
-                if leaderboard:
-                    current_leader = leaderboard[0]["name"]
-                    if url in previous_leaders:
-                        previous_leader = previous_leaders[url]
-                        if previous_leader != current_leader:
-                            await channel.send(f"New leader for {leg_name}: {current_leader} (previously {previous_leader})! URL {url}")
+                    leaderboard = scrape_leaderboard(url)
+                    if leaderboard:
+                        current_leader = leaderboard[0]["name"]
+                        current_time = leaderboard[0]["diff_first"]
+                        track_name = f"{leg_name} - Track {idx + 1}"
 
-                    # Update the previous leader
-                    previous_leaders[url] = current_leader
-        
-        await asyncio.sleep(60)  # Adjust refresh time as needed
+                        previous = previous_leaders.get(track_name)
+
+                        if previous and previous.get("name") != current_leader:
+                            previous_name = previous.get("name", "Unknown")
+                            previous_time = previous.get("time", "N/A")
+
+                            embed = discord.Embed(
+                                title="🏆 New Track Leader!",
+                                description=(
+                                    f"**{current_leader}** is now leading **{track_name}**\n"
+                                    f"(Previously: {previous_name})\n"
+                                    f"**Time Diff:** `{previous_time} → {current_time}`"
+                                ),
+                                color=discord.Color.gold()
+                            )
+                            await channel.send(embed=embed)
+
+                        previous_leaders[track_name] = {
+                            "name": current_leader,
+                            "time": current_time
+                        }
+
+            await asyncio.sleep(60)
+
+        except Exception as e:
+            print(f"[ERROR] Exception in check_leader_change: {e}")
+            await asyncio.sleep(60)  # Sleep anyway to avoid tight error loop
+
 
 @bot.event
 async def on_ready():
