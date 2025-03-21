@@ -75,6 +75,7 @@ def scrape_general_leaderboard(url, table_class="rally_results"):
                 "position": position,
                 "name": name,
                 "vehicle": vehicle,
+                "time": time,
                 "diff_prev": diff_prev,
                 "diff_first": diff_first
             }
@@ -207,21 +208,24 @@ async def check_leader_change():
                     leaderboard = scrape_leaderboard(url)
                     if leaderboard:
                         current_leader = leaderboard[0]["name"]
-                        current_time = leaderboard[0]["diff_first"]
                         track_name = f"{leg_name} - Track {idx + 1}"
-
                         previous = previous_leaders.get(track_name)
 
                         if previous and previous.get("name") != current_leader:
                             previous_name = previous.get("name", "Unknown")
-                            previous_time = previous.get("time", "N/A")
+
+                        #Get the time diff from 2nd place to 1st place
+                            if len(leaderboard) > 1:
+                                current_diff_to_second = leaderboard[1]["diff_first"]
+                            else:
+                                current_diff_to_second = "N/A"
 
                             embed = discord.Embed(
                                 title="🏆 New Track Leader!",
                                 description=(
                                     f"**{current_leader}** is now leading **{track_name}**\n"
                                     f"(Previously: {previous_name})\n"
-                                    f"**Time Diff:** `{previous_time} → {current_time}`"
+                                    f"**Time Diff:** {current_diff_to_second}"
                                 ),
                                 color=discord.Color.gold()
                             )
@@ -229,7 +233,6 @@ async def check_leader_change():
 
                         previous_leaders[track_name] = {
                             "name": current_leader,
-                            "time": current_time
                         }
 
             await asyncio.sleep(60)
