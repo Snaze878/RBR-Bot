@@ -117,24 +117,39 @@ def scrape_leaderboard(url, table_class="rally_results_stres_right"):
             diff_first = columns[4].text.strip()
             
             # Split the name and vehicle into 3 parts. Have to do this due to how the website table is setup. 
+            # Split the name and vehicle into parts
             name_parts = name_vehicle.split(" / ", 1)
+
+            vehicle_starts = [
+                "Citroen", "Ford", "Peugeot", "Opel", "Abarth", "Skoda", "Mitsubishi", "Subaru", "BMW", "GM", "GMC",
+                "Toyota", "Honda", "Suzuki", "Acura", "Audi", "Volkswagen", "Chevrolet", "Volvo", "Kia", "Jeep", "Dodge",
+                "Mazda", "Hyundai", "Buick", "MINI", "Porsche", "Mercedes", "Land Rover", "Alfa Romeo", "Lancia"
+            ]
+
             if len(name_parts) > 1:
-                name1 = name_parts[0].strip()  # "Name Before the /"
-                name2_vehicle = name_parts[1].strip()  # "Name after the /"
-                # Now, separate the name from the vehicle
-                for vehicle_start in ["Citroen", "Ford", "Peugeot", "Opel", "Abarth", "Skoda", "Mitsubishi", "Subaru", "BMW", "GM", "GMC", "Toyota", "Honda", "Suzuki", "Acura", "Audi", "Volkswagen", "Chevorlet", "Volvo", "Kia", "Jeep", "Dodge", "Mazda", "Hyundai", "Buick", "MINI", "Porsche", "Mercedes", "Land Rover", "Acura", "Alfa Romeo", "Lancia", "Toyota Celica"]:  # Extend this list if needed
-                    if vehicle_start in name2_vehicle:
-                        name2 = name2_vehicle.split(vehicle_start, 1)[0].strip()  # "Name"
-                        vehicle = vehicle_start + name2_vehicle.split(vehicle_start, 1)[1].strip()  # "Vehicle"
+                name1 = name_parts[0].strip()
+                name2_vehicle = name_parts[1].strip()
+                for brand in vehicle_starts:
+                    if brand in name2_vehicle:
+                        name2 = name2_vehicle.split(brand, 1)[0].strip()
+                        vehicle = brand + " " + name2_vehicle.split(brand, 1)[1].strip()
                         break
                 else:
-                    # If no vehicle is found in the second part, treat the entire second part as name
                     name2 = name2_vehicle
                     vehicle = ""
             else:
-                name1 = name_parts[0].strip()
-                name2 = ""
-                vehicle = ""
+                combined = name_parts[0].strip()
+                for brand in vehicle_starts:
+                    if brand in combined:
+                        name1 = combined.split(brand, 1)[0].strip()
+                        vehicle = brand + " " + combined.split(brand, 1)[1].strip()
+                        name2 = ""
+                        break
+                else:
+                    name1 = combined
+                    name2 = ""
+                    vehicle = ""
+
 
             full_name = f"{name1} / {name2}"  # Combine both name parts
             entry = {
