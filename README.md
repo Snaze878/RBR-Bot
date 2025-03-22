@@ -1,168 +1,164 @@
-About RBR Discord Bot
------
-Welcome to the RBR Discord Bot! This bot is designed to scrape online leaderboards and provide real-time updates on rally standings from https://rallysimfans.hu/. Whether you're part of a rally group looking to keep track of everyone's performance or just want to stay updated on the competition, this bot ensures you never miss a leaderboard update.
+Here's a cleaner, more polished version of your `README.md` that's structured for clarity and professional presentation on GitHub:
 
-------
+---
 
-Features:
+# RBR Discord Bot
 
-Automated Leaderboard Updates: The bot scrapes the rally leaderboard and posts updates in Discord.
+Welcome to the **RBR Discord Bot**!  
+This bot is designed to scrape online leaderboards and provide real-time updates from [rallysimfans.hu](https://rallysimfans.hu/). Whether you're tracking your rally team's progress or just want to stay up to date with the competition, this bot ensures you never miss a moment.
 
-Real-Time Leader Changes: Notifies the server when there is a new leader in a rally leg.
+---
 
-Custom Commands: Retrieve top performers and detailed rally standings using simple commands.
+## 🚗 Features
 
-Dynamic Event Tracking: Supports multiple rally legs, ensuring full coverage of the competition.
+- **Automated Leaderboard Updates**  
+  Scrapes the rally leaderboard and posts updates directly to Discord.
 
-Info Retrieval: Provides important rally details like championship name and password.
+- **Real-Time Leader Changes**  
+  Notifies the server when there's a new leader in a rally leg.
 
-------
+- **Custom Commands**  
+  Retrieve top performers and detailed standings using simple chat commands.
 
-Commands:
+- **Dynamic Event Tracking**  
+  Supports multiple rally legs for full event coverage.
 
-!leaderboard - Fetches the general leaderboard.
+- **Info Retrieval**  
+  Displays key rally details like championship name and password.
 
-!leg1, !leg2, ..., !leg6 - Displays the top 5 standings for a specific rally leg.
+---
 
-!info - Retrieves essential rally details like competition name and access credentials.
+## 💬 Commands
 
-------
+```
+!leaderboard     → Shows the general leaderboard.
+!leg1 to !leg6   → Displays top 5 results for the specified rally leg.
+!info            → Shows competition name and access credentials.
+```
 
-How It Works:
+---
 
-The bot uses web scraping to extract leaderboard data from your rallysimfans group. It processes the information and presents it in an easy-to-read format on Discord. By continuously monitoring changes, the bot ensures that users receive timely updates on race progress.
+## ⚙️ How It Works
 
-------
+The bot scrapes leaderboard data from your RallySimFans group, processes the information, and posts updates in a readable format on Discord. It continuously monitors for changes to provide timely alerts on race progress.
 
-Open-Source & Licensing:
+---
 
-The RBR Discord Bot is open-source software, released under the GNU General Public License v3. This means you are free to modify and distribute it as long as you comply with the license terms.
+## 🧾 License
 
-------
+This project is open-source and licensed under the **GNU General Public License v3**.  
+Feel free to modify and distribute it under the terms of the license.
 
-Contributions & Support:
+---
 
-If you'd like to contribute to the project or report issues, feel free to get involved! The bot is continuously improving, and community feedback is always welcome.
+## 🤝 Contribute & Get Support
 
-Enjoy the races and stay updated with RBR Discord Bot!
+Want to contribute or report a bug? Pull requests and issue reports are welcome!  
+Join the support community here:
 
+**[🌐 Discord Support Server](https://discord.gg/HbRaM2taQG)**
 
-Support Server
---------
+---
 
-https://discord.gg/HbRaM2taQG
+# 🛠 Installation Guide
 
+## 1. Install Python
 
-RBR Discord Bot Installation Guide
-------
+Download Python: [https://www.python.org/downloads/](https://www.python.org/downloads/)  
+✅ Be sure to check **“Add Python to PATH”** during installation.
 
-Install:
-----
-1. Install Python:
+---
 
-Download Python from the official website. https://www.python.org/downloads/
+## 2. Install Required Packages
 
-During installation, make sure to "Add Python.exe to PATH" on the first screen.
+Run the following in your terminal:
 
-------
-
-2. Install Required Python Packages:
-
-Run the following commands in a terminal:
-
+```bash
 pip install discord.py requests beautifulsoup4
+pip install python-dotenv selenium
+```
 
-pip install python-dotenv
+---
 
-pip install selenium
+## 3. Create Your Discord Bot
 
-------
+- Visit: [Discord Developer Portal](https://discord.com/developers/applications)
+- Click **“New Application”**, name it, and go to the **Bot** tab.
+- Click **“Add Bot”** and enable **Message Content Intent**.
 
-3. Create a Discord Bot:
+---
 
-Go to Discord Developer Applications Website: https://discord.com/developers/applications
+## 4. Set Bot Permissions
 
-Click New Application, name your bot, and build it.
+Ensure the bot has the following permissions:
 
-Navigate to Bot on the left menu.
+- Send Messages  
+- Embed Links  
+- Read Message History  
+- Use External Emojis  
 
-Enable Message Content Intent.
+---
 
-------
+## 5. Generate OAuth2 URL
 
-4. Set Bot Permissions:
+- In the **OAuth2** tab, use the URL Generator:
+  - Select `bot` scope
+  - Assign the permissions listed above
+- Set integration type to **Guild Install**  
+- Copy and paste the generated URL into your browser to invite the bot to your server.
 
-The bot should have the following permissions:
+---
 
-Send messages
+## 6. Download the Bot Files
 
-Embed links
+Place `RBR_Bot.py` and `.env` in a directory like:
 
-Read message history
+```
+C:\Users\YOUR_NAME\
+```
 
-Use external emojis
+> ⚠️ Rename `.env.txt` to just `.env` if necessary.
 
-------
+---
 
-5. Generate an OAuth2 URL:
+## 7. Configure the .env File
 
-Go to the OAuth2 tab.
+Open `.env` and add your details:
 
-Under OAuth2 URL Generator, select bot.
+```env
+DISCORD_TOKEN=your_bot_token_here
+DISCORD_CHANNEL_ID=your_channel_id_here
+RALLY_URL=https://example.com
+RALLY_NAME=My Rally Event
+RALLY_PASSWORD=examplepass
+LEADERBOARD_URL=https://example.com/leaderboard
+LEG1_URL=https://example.com/leg1
+LEG2_URL=https://example.com/leg2
+...
+```
 
-The Bot Permissions section will appear—ensure the bot has the correct permissions as listed above.
+> 🔐 **Never share your bot token publicly.**
 
-Set Integration Type to Guild Install.
+---
 
-Copy the generated URL and paste it into your browser.
+## 8. Enable Developer Mode in Discord
 
-Select the Discord server where you want to add the bot.
+- Go to **User Settings > Advanced > Developer Mode**.
+- Right-click a channel → **Copy Channel ID** and paste into your `.env`.
 
-------
+---
 
-6. Download the Bot Files:
+## 9. Run the Bot
 
-Download RBR_Bot.py and the .env file.
+Open a terminal, navigate to the bot's folder:
 
-Place them under your user directory, e.g., C:\Users\YOUR_NAME.
+```bash
+cd path\to\your\bot
+python RBR_Bot.py
+```
 
-Note on the .env file that you might have to re-name it. Make sure it's just called ".env"
+You're all set! 🎉 The bot should now be running and posting updates in your selected channel.
 
-------
+---
 
-7. Configure the .env File:
-
-Open the .env file in a text editor.
-
-Add your Discord Bot Token (found under Bot in the Discord Developer portal). DO NOT SHARE THIS TOKEN!
-
-------
-
-8. Set Up the Channel ID:
-
-In Discord, go to Settings > App Settings > Advanced and enable Developer Mode.
-
-Go to your Discord server, right-click the desired text channel, and select Copy Channel ID.
-
-Paste this into DISCORD_CHANNEL_ID in your .env file.
-
-------
-
-9. Configure Rally Team Details:
-
-Add your Rally URL, Rally Name, and Password.
-
-Add the Leaderboard URL and any other leg URLs as needed.
-
-Example values are provided in the .env file.
-
-------
-
-10. Run the Bot:
-
-Open CMD (Command Prompt).
-
-Navigate to the directory where RBR_Bot.py is stored.
-
-Run the bot with: 
-  python RBR_Bot.py
+Let me know if you'd like it tailored for a specific theme (dark mode screenshots, badges, GitHub Pages layout, etc.)!
