@@ -1,7 +1,3 @@
-Here's a cleaner, more polished version of your `README.md` that's structured for clarity and professional presentation on GitHub:
-
----
-
 # RBR Discord Bot
 
 Welcome to the **RBR Discord Bot**!  
