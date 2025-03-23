@@ -159,6 +159,3 @@ python RBR_Bot.py
 
 You're all set! 🎉 The bot should now be running and posting updates in your selected channel.
 
----
-
-Let me know if you'd like it tailored for a specific theme (dark mode screenshots, badges, GitHub Pages layout, etc.)!
