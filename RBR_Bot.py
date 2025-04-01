@@ -19,6 +19,7 @@ import discord
 import asyncio
 import requests
 import time
+import csv
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -34,6 +35,8 @@ load_dotenv()
 # Retrieve environment variables
 LEADERBOARD_URL = os.getenv("LEADERBOARD_URL") #Update Leaderboard in the .env file.
 
+# Load previous weeks leaderboard
+S1W1_URL = os.getenv("S1W1_URL")
 
 # Function to scrape the general leaderboard
 def scrape_general_leaderboard(url, table_class="rally_results"):
@@ -198,6 +201,8 @@ async def check_leader_change():
         print("Error: Discord channel not found!")
         return
 
+    first_run = True  # Skip announcements during first scan
+
     while not bot.is_closed():
         try:
             for leg_name, urls in URLS.items():
@@ -211,10 +216,28 @@ async def check_leader_change():
                         track_name = f"{leg_name} - Track {idx + 1}"
                         previous = previous_leaders.get(track_name)
 
-                        if previous and previous.get("name") != current_leader:
+                        # 🔹 First scan only: silently store all current leaders
+                        if first_run:
+                            previous_leaders[track_name] = {"name": current_leader}
+                            print(f"[INIT] {track_name} leader set to {current_leader}")
+                            continue
+
+                        # 🔹 A new track has been added mid-runtime
+                        if previous is None:
+                            embed = discord.Embed(
+                                title="📢 Leader Detected",
+                                description=(
+                                    f"**{current_leader}** is leading **{track_name}**\n"
+                                    f"(First driver to complete this track)"
+                                ),
+                                color=discord.Color.blue()
+                            )
+                            await channel.send(embed=embed)
+
+                        # 🔹 Leader has changed
+                        elif previous.get("name") != current_leader:
                             previous_name = previous.get("name", "Unknown")
 
-                        #Get the time diff from 2nd place to 1st place
                             if len(leaderboard) > 1:
                                 current_diff_to_second = leaderboard[1]["diff_first"]
                             else:
@@ -231,15 +254,21 @@ async def check_leader_change():
                             )
                             await channel.send(embed=embed)
 
-                        previous_leaders[track_name] = {
-                            "name": current_leader,
-                        }
+                        # 🔹 Always update stored leader
+                        previous_leaders[track_name] = {"name": current_leader}
+
+            if first_run:
+                first_run = False
+                print("[INFO] First run complete. Bot will now announce leader changes.")
 
             await asyncio.sleep(60)
 
         except Exception as e:
             print(f"[ERROR] Exception in check_leader_change: {e}")
-            await asyncio.sleep(60)  # Sleep anyway to avoid tight error loop
+            await asyncio.sleep(60)
+
+
+
 
 
 @bot.event
@@ -320,6 +349,51 @@ async def on_message(message):
             )
         else:
             await message.channel.send("Error: Some information is missing in the `.env` file.")
+
+    # Handle !points command
+    elif message.content.startswith("!points"):
+        file_path = os.path.join(os.path.dirname(__file__), "standings.csv")
+
+        if not os.path.exists(file_path):
+            await message.channel.send("❌ Could not find `standings.csv`. Make sure it’s in the same folder as your bot script.")
+            return
+
+        try:
+            with open(file_path, "r", newline="", encoding="utf-8") as csvfile:
+                reader = csv.DictReader(csvfile)
+                rows = list(reader)
+
+            if not rows:
+                await message.channel.send("⚠️ The standings file is empty.")
+                return
+
+            header = "**🏁 Season One RBR Leaderboard 🏁**\n"
+            standings = "\n".join(
+                [f"**{row['Position']}**. **{row['Driver']}** - {row['Points']} pts" for row in rows]
+            )
+
+            await message.channel.send(header + standings)
+
+        except Exception as e:
+            await message.channel.send(f"⚠️ Error reading standings: {e}")
+
+
+     # Handle !s1w1 command (Season 1, Week 1)
+    elif message.content.startswith("!s1w1"):
+        if not S1W1_URL:
+            await message.channel.send("⚠️ The S1W1_URL is not set in the `.env` file.")
+            return
+
+        leaderboard = scrape_general_leaderboard(S1W1_URL)
+        if leaderboard:
+            top10 = "\n".join([
+                f"**{entry['position']}**. **{entry['name']}** :race_car: {entry['vehicle']} :hourglass: ({entry['diff_first']})"
+                for entry in leaderboard[:10]
+            ])
+            await message.channel.send(f"**Season 1 - Week 1 Leaderboard:**\n{top10}")
+        else:
+            await message.channel.send("Couldn't retrieve the Season 1 Week 1 leaderboard.")
+
 
     # Ensure bot continues processing other commands
     await bot.process_commands(message)
