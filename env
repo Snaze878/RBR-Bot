@@ -5,16 +5,19 @@ DISCORD_BOT_TOKEN=""
 DISCORD_CHANNEL_ID= 
 
 #League Info
-INFO_URL=https://rallysimfans.hu/rbr/rally_online.php?centerbox=rally_list_details.php&rally_id=80526 #Example URL
-RALLY_NAME= Test
-RALLY_PASSWORD= Test
+INFO_URL=https://rallysimfans.hu/rbr/rally_online.php?centerbox=rally_list_details.php&rally_id=81394 #Example URL
+RALLY_NAME= Example
+RALLY_PASSWORD= Example
 
 #URLS Needed
 #Leaderboard URL
-LEADERBOARD_URL=https://rallysimfans.hu/rbr/rally_online.php?centerbox=rally_results.php&rally_id=80526&cg=7 #Example URL
+LEADERBOARD_URL=https://rallysimfans.hu/rbr/rally_online.php?centerbox=rally_results.php&rally_id=81394&cg=7 #Example URL
+
+S1W1_URL=https://rallysimfans.hu/rbr/rally_online.php?centerbox=rally_results.php&rally_id=81125&cg=7 #Example URL
+
 
 #If Legs have multiple Tracks
-LEG_1_1=https://rallysimfans.hu/rbr/rally_online.php?centerbox=rally_results_stres.php&rally_id=80526&cg=7&stage_no=1 #Example URL
+LEG_1_1=https://rallysimfans.hu/rbr/rally_online.php?centerbox=rally_results_stres.php&rally_id=81394&cg=7&stage_no=1 #Example URL
 LEG_1_2=
 LEG_1_3=
 
