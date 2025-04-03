@@ -1,46 +1,51 @@
 # RBR Discord Bot
 
 Welcome to the **RBR Discord Bot**!  
-This bot is designed to scrape online leaderboards and provide real-time updates from [rallysimfans.hu](https://rallysimfans.hu/). Whether you're tracking your rally team's progress or just want to stay up to date with the competition, this bot ensures you never miss a moment.
+This bot scrapes online leaderboards from [rallysimfans.hu](https://rallysimfans.hu/) and posts real-time updates to Discord. Whether you're tracking your rally team's progress or keeping tabs on the competition, this bot has you covered.
 
 ---
 
-## 🚗 Features
+## 🏎️ Features
 
 - **Automated Leaderboard Updates**  
-  Scrapes the rally leaderboard and posts updates directly to Discord.
+  Continuously scrapes and posts the latest rally standings to your Discord server.
 
-- **Real-Time Leader Changes**  
-  Notifies the server when there's a new leader in a rally leg.
+- **Live Leader Change Detection**  
+  Announces when a new driver takes the lead in any rally leg.
 
-- **Custom Commands**  
-  Retrieve top performers and detailed standings using simple chat commands.
+- **Custom Chat Commands**  
+  Use commands to retrieve top performers, rally info, and CSV-based point standings.
 
-- **Dynamic Event Tracking**  
-  Supports multiple rally legs for full event coverage.
+- **Multi-Leg Event Support**  
+  Handles tracking and announcements across six rally legs with three stages each.
 
-- **Info Retrieval**  
-  Displays key rally details like championship name and password.
+- **Archived Leaderboards**  
+  View past week results with dedicated commands.
+
+- **CSV Standings Parsing**  
+  Reads `standings.csv` to display custom season-long driver points.
 
 ---
 
 ## 💬 Commands
 
 ```
-!leaderboard     → Shows the general leaderboard.
-!leg1 to !leg6   → Displays top 5 results for the specified rally leg.
-!info            → Shows competition name and access credentials.
+!leaderboard       → Shows the general leaderboard (top 10).
+!leg1 to !leg6     → Displays top 5 results for each track in the specified rally leg.
+!info              → Shows competition name, password, and rally URL.
+!points            → Displays season-long standings from standings.csv.
+!s1w1              → Shows archived results from Season 1, Week 1.
 ```
 
 ---
 
 ## ⚙️ How It Works
 
-The bot scrapes leaderboard data from your RallySimFans group, processes the information, and posts updates in a readable format on Discord. It continuously monitors for changes to provide timely alerts on race progress.
+The bot uses `requests` and `BeautifulSoup` to scrape HTML tables from RallySimFans and parses the results. It detects leader changes in real time and posts rich embedded messages in Discord using `discord.py`. It also loads URLs and bot tokens from a secure `.env` file and supports dynamic commands for accessing results.
 
 ---
 
-## 🧾 License
+## 📜 License
 
 This project is open-source and licensed under the **GNU General Public License v3**.  
 Feel free to modify and distribute it under the terms of the license.
@@ -56,7 +61,7 @@ Join the support community here:
 
 ---
 
-# 🛠 Installation Guide
+# 🛠️ Installation Guide
 
 ## 1. Install Python
 
@@ -71,7 +76,7 @@ Run the following in your terminal:
 
 ```bash
 pip install discord.py requests beautifulsoup4
-pip install python-dotenv selenium
+pip install python-dotenv selenium webdriver-manager
 ```
 
 ---
@@ -122,15 +127,18 @@ C:\Users\YOUR_NAME\
 Open `.env` and add your details:
 
 ```env
-DISCORD_TOKEN=your_bot_token_here
+DISCORD_BOT_TOKEN=your_bot_token_here
 DISCORD_CHANNEL_ID=your_channel_id_here
-RALLY_URL=https://example.com
+LEADERBOARD_URL=https://example.com/leaderboard
+S1W1_URL=https://example.com/season1week1
+INFO_URL=https://example.com/info
 RALLY_NAME=My Rally Event
 RALLY_PASSWORD=examplepass
-LEADERBOARD_URL=https://example.com/leaderboard
-LEG1_URL=https://example.com/leg1
-LEG2_URL=https://example.com/leg2
+LEG_1_1=https://example.com/leg1/track1
+LEG_1_2=https://example.com/leg1/track2
+LEG_1_3=https://example.com/leg1/track3
 ...
+LEG_6_3=https://example.com/leg6/track3
 ```
 
 > 🔐 **Never share your bot token publicly.**
