@@ -38,6 +38,17 @@ LEADERBOARD_URL = os.getenv("LEADERBOARD_URL") #Update Leaderboard in the .env f
 # Load previous weeks leaderboard
 S1W1_URL = os.getenv("S1W1_URL")
 
+from discord.ui import View, Button
+
+class LeaderboardLinkView(View):
+    def __init__(self, links: dict):
+        super().__init__(timeout=None)
+        for label, url in links.items():
+            if isinstance(url, str):
+                self.add_item(Button(label=label, url=url))
+
+
+
 # Function to scrape the general leaderboard
 def scrape_general_leaderboard(url, table_class="rally_results"):
     headers = {"User-Agent": "Mozilla/5.0"}
@@ -299,28 +310,44 @@ async def on_message(message):
 
         # Scrape and format leaderboards dynamically
         def scrape_and_format(url, source):
-            leaderboard = scrape_leaderboard(url, table_class="rally_results_stres_right")  # Adjust table class if needed
+            leaderboard = scrape_leaderboard(url, table_class="rally_results_stres_right")
             if not leaderboard:
-                return f"❌ No leaderboard data available from {source}."
-            
-            top_entries = leaderboard[:5]  # Get only the top 5
+                return f"❌ No leaderboard data available from {source}.", None
+
+            top_entries = leaderboard[:5]
             formatted_results = "\n".join(
                 [f"**{entry['position']}**. **{entry['name']}** 🏎️ {entry['vehicle']} ⏳ ({entry['diff_first']})"
-                 for entry in top_entries]
+                for entry in top_entries]
             )
-            return f"🏁 **Top 5 for {source}:**\n{formatted_results}"
+            text = f"🏁 **Top 5 for {source}:**\n{formatted_results}"
+            return text, url
+
+
+
 
         # Prepare the output
+        # Gather all leaderboard messages and links
         leaderboard_messages = []
-        for idx, url in enumerate(leg_urls, start=1):
-            result = scrape_and_format(url, f"Leg {leg_number} (Track {idx})")
-            if result:
-                leaderboard_messages.append(result)
+        button_links = {}  # For button label → URL
 
-        # Combine all results with separators
-        response = "\n\n────────────────────\n\n".join(leaderboard_messages) if leaderboard_messages else f"⚠️ No data available for Leg {leg_number}."
-        
-        await message.channel.send(response)
+        for idx, url in enumerate(leg_urls, start=1):
+            source_label = f"Leg {leg_number} (Track {idx})"
+            result_text, result_url = scrape_and_format(url, source_label)
+    
+            if result_text:
+                leaderboard_messages.append(result_text)
+                if result_url:
+                    button_links[source_label] = result_url
+
+        # Final response
+        response = "\n\n────────────────────\n\n".join(leaderboard_messages)
+        if button_links:
+                response += "\n\u200B" #Adds line break before buttons
+        view = LeaderboardLinkView(button_links) if button_links else None
+
+        await message.channel.send(response, view=view)
+
+
 
 
     
