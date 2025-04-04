@@ -1,25 +1,9 @@
-# My RBR Discord Bot - Scrapes a website and outputs leaderboards
-# Copyright (C) 2025 Snaze878
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-
 import discord
 import asyncio
 import requests
 import time
 import csv
+import logging
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -28,14 +12,66 @@ from webdriver_manager.chrome import ChromeDriverManager
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
 import os
+from logging.handlers import TimedRotatingFileHandler
 
-# Load environment variables from .env file
+# ─── LOGGING SETUP ───
+log_dir = "logs"
+os.makedirs(log_dir, exist_ok=True)
+
+log_format = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+
+# Discord logger
+discord_log_path = os.path.join(log_dir, "discord_commands.log")
+discord_handler = TimedRotatingFileHandler(
+    filename=discord_log_path,
+    when="midnight",
+    interval=1,
+    backupCount=7,
+    encoding='utf-8'
+)
+discord_handler.setLevel(logging.DEBUG)
+discord_handler.setFormatter(log_format)
+
+discord_logger = logging.getLogger("discord")
+discord_logger.setLevel(logging.DEBUG)
+discord_logger.addHandler(discord_handler)
+
+# Scraping logger
+scrape_log_path = os.path.join(log_dir, "scraping.log")
+scrape_handler = TimedRotatingFileHandler(
+    filename=scrape_log_path,
+    when="midnight",
+    interval=1,
+    backupCount=7,
+    encoding='utf-8'
+)
+scrape_handler.setLevel(logging.DEBUG)
+scrape_handler.setFormatter(log_format)
+
+scraping_logger = logging.getLogger("scraping")
+scraping_logger.setLevel(logging.DEBUG)
+scraping_logger.addHandler(scrape_handler)
+
+# Error logger
+error_log_path = os.path.join(log_dir, "error.log")
+error_handler = TimedRotatingFileHandler(
+    filename=error_log_path,
+    when="midnight",
+    interval=1,
+    backupCount=7,
+    encoding='utf-8'
+)
+error_handler.setLevel(logging.WARNING)
+error_handler.setFormatter(log_format)
+
+root_logger = logging.getLogger()
+root_logger.setLevel(logging.DEBUG)
+root_logger.addHandler(error_handler)
+
+# ─── ENV LOADING ───
 load_dotenv()
 
-# Retrieve environment variables
-LEADERBOARD_URL = os.getenv("LEADERBOARD_URL") #Update Leaderboard in the .env file.
-
-# Load previous weeks leaderboard
+LEADERBOARD_URL = os.getenv("LEADERBOARD_URL")
 S1W1_URL = os.getenv("S1W1_URL")
 
 from discord.ui import View, Button
@@ -47,82 +83,64 @@ class LeaderboardLinkView(View):
             if isinstance(url, str):
                 self.add_item(Button(label=label, url=url))
 
-
-
-# Function to scrape the general leaderboard
 def scrape_general_leaderboard(url, table_class="rally_results"):
     headers = {"User-Agent": "Mozilla/5.0"}
     response = requests.get(url, headers=headers)
 
     if response.status_code != 200:
-        print(f"Error: Unable to fetch the page for {url}")
+        scraping_logger.warning(f"Unable to fetch the page for {url} (Status code: {response.status_code})")
         return []
 
     soup = BeautifulSoup(response.text, "html.parser")
-
     leaderboard = []
     tables = soup.find_all("table", {"class": table_class})  
 
     if not tables:
-        print(f"Table not found for {url}!")
+        scraping_logger.warning(f"Table not found for {url}!")
         return []
-    
-    table = tables[1]  # Select the first table found (adjusted if needed)
+
+    table = tables[1]
     table_rows = table.find_all("tr")
-    
-    print(f"Found {len(table_rows)} rows for {url}")
-    
-    for index, row in enumerate(table_rows[0:]):  # Skip header row if needed
+    scraping_logger.info(f"Found {len(table_rows)} rows for {url}")
+
+    for index, row in enumerate(table_rows[0:]):
         columns = row.find_all("td")
         if len(columns) >= 7:
-            position = columns[0].text.strip()
-            name = columns[1].text.strip()
-            makelogo = columns[2].text.strip()
-            vehicle = columns[3].text.strip()
-            time = columns[4].text.strip()
-            diff_prev = columns[5].text.strip()
-            diff_first = columns[6].text.strip()
-            sr = columns[7].text.strip()
-            
-           
             entry = {
-                "position": position,
-                "name": name,
-                "vehicle": vehicle,
-                "time": time,
-                "diff_prev": diff_prev,
-                "diff_first": diff_first
+                "position": columns[0].text.strip(),
+                "name": columns[1].text.strip(),
+                "vehicle": columns[3].text.strip(),
+                "time": columns[4].text.strip(),
+                "diff_prev": columns[5].text.strip(),
+                "diff_first": columns[6].text.strip()
             }
             leaderboard.append(entry)
-            print(f"Row {index + 1} - Added: {entry} from {url}")
+            scraping_logger.debug(f"Row {index + 1} - Added: {entry} from {url}")
 
-    print(f"Final leaderboard ({len(leaderboard)} entries) for {url}: {leaderboard}")
+    scraping_logger.info(f"Final leaderboard ({len(leaderboard)} entries) for {url}")
     return leaderboard
 
-# Function to scrape the leaderboard for each leg
 def scrape_leaderboard(url, table_class="rally_results_stres_right"):
     headers = {"User-Agent": "Mozilla/5.0"}
     response = requests.get(url, headers=headers)
 
     if response.status_code != 200:
-        print(f"Error: Unable to fetch the page for {url}")
+        scraping_logger.warning(f"Unable to fetch the page for {url} (Status code: {response.status_code})")
         return []
 
     soup = BeautifulSoup(response.text, "html.parser")
-
     leaderboard = []
-    tables = soup.find_all("table", {"class": table_class})  
+    tables = soup.find_all("table", {"class": table_class})
 
     if not tables:
-        print(f"Table not found for {url}!")
+        scraping_logger.warning(f"Table not found for {url}!")
         return []
-    
-    table = tables[1]  # Select the first table found
+
+    table = tables[1]
     table_rows = table.find_all("tr")
-    
-    print(f"Found {len(table_rows)} rows for {url}")
-    
-    for index, row in enumerate(table_rows[0:]):  # Skip header row if needed
+    scraping_logger.info(f"Found {len(table_rows)} rows for {url}")
+
+    for index, row in enumerate(table_rows[0:]):
         columns = row.find_all("td")
         if len(columns) >= 5:
             position = columns[0].text.strip()
@@ -130,11 +148,8 @@ def scrape_leaderboard(url, table_class="rally_results_stres_right"):
             time = columns[2].text.strip()
             diff_prev = columns[3].text.strip()
             diff_first = columns[4].text.strip()
-            
-            # Split the name and vehicle into 3 parts. Have to do this due to how the website table is setup. 
-            # Split the name and vehicle into parts
-            name_parts = name_vehicle.split(" / ", 1)
 
+            name_parts = name_vehicle.split(" / ", 1)
             vehicle_starts = [
                 "Citroen", "Ford", "Peugeot", "Opel", "Abarth", "Skoda", "Mitsubishi", "Subaru", "BMW", "GM", "GMC",
                 "Toyota", "Honda", "Suzuki", "Acura", "Audi", "Volkswagen", "Chevrolet", "Volvo", "Kia", "Jeep", "Dodge",
@@ -165,8 +180,7 @@ def scrape_leaderboard(url, table_class="rally_results_stres_right"):
                     name2 = ""
                     vehicle = ""
 
-
-            full_name = f"{name1} / {name2}"  # Combine both name parts
+            full_name = f"{name1} / {name2}"
             entry = {
                 "position": position,
                 "name": full_name,
@@ -175,16 +189,16 @@ def scrape_leaderboard(url, table_class="rally_results_stres_right"):
                 "diff_first": diff_first
             }
             leaderboard.append(entry)
-            print(f"Row {index + 1} - Added: {entry} from {url}")
+            scraping_logger.debug(f"Row {index + 1} - Added: {entry} from {url}")
 
-    print(f"Final leaderboard ({len(leaderboard)} entries) for {url}: {leaderboard}")
+    scraping_logger.info(f"Final leaderboard ({len(leaderboard)} entries) for {url}")
     return leaderboard
 
+
+
 # Bot setup
+TOKEN = os.getenv("DISCORD_BOT_TOKEN")
 
-TOKEN = os.getenv("DISCORD_BOT_TOKEN")  # Discord bot token. Put it into the .env file.
-
-# Urls will all go into the .env file.
 URLS = {
     "Leg 1": [os.getenv("LEG_1_1"), os.getenv("LEG_1_2"), os.getenv("LEG_1_3")],
     "Leg 2": [os.getenv("LEG_2_1"), os.getenv("LEG_2_2"), os.getenv("LEG_2_3")],
@@ -194,7 +208,7 @@ URLS = {
     "Leg 6": [os.getenv("LEG_6_1"), os.getenv("LEG_6_2"), os.getenv("LEG_6_3")]
 }
 
-CHANNEL_ID = int(os.getenv("DISCORD_CHANNEL_ID") ) # Discord channel ID. Put it into the .env file.
+CHANNEL_ID = int(os.getenv("DISCORD_CHANNEL_ID"))
 
 intents = discord.Intents.default()
 intents.message_content = True  
@@ -209,10 +223,10 @@ async def check_leader_change():
 
     channel = bot.get_channel(CHANNEL_ID)
     if not channel:
-        print("Error: Discord channel not found!")
+        logging.error("Discord channel not found!")
         return
 
-    first_run = True  # Skip announcements during first scan
+    first_run = True
 
     while not bot.is_closed():
         try:
@@ -227,13 +241,11 @@ async def check_leader_change():
                         track_name = f"{leg_name} - Track {idx + 1}"
                         previous = previous_leaders.get(track_name)
 
-                        # 🔹 First scan only: silently store all current leaders
                         if first_run:
                             previous_leaders[track_name] = {"name": current_leader}
-                            print(f"[INIT] {track_name} leader set to {current_leader}")
+                            logging.info(f"[INIT] {track_name} leader set to {current_leader}")
                             continue
 
-                        # 🔹 A new track has been added mid-runtime
                         if previous is None:
                             embed = discord.Embed(
                                 title="📢 Leader Detected",
@@ -245,7 +257,6 @@ async def check_leader_change():
                             )
                             await channel.send(embed=embed)
 
-                        # 🔹 Leader has changed
                         elif previous.get("name") != current_leader:
                             previous_name = previous.get("name", "Unknown")
 
@@ -265,22 +276,17 @@ async def check_leader_change():
                             )
                             await channel.send(embed=embed)
 
-                        # 🔹 Always update stored leader
                         previous_leaders[track_name] = {"name": current_leader}
 
             if first_run:
                 first_run = False
-                print("[INFO] First run complete. Bot will now announce leader changes.")
+                logging.info("First run complete. Bot will now announce leader changes.")
 
             await asyncio.sleep(60)
 
         except Exception as e:
-            print(f"[ERROR] Exception in check_leader_change: {e}")
+            logging.error(f"Exception in check_leader_change: {e}")
             await asyncio.sleep(60)
-
-
-
-
 
 @bot.event
 async def on_ready():
