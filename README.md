@@ -162,4 +162,3 @@ python RBR_Bot.py
 ```
 
 You're all set! 🎉 The bot should now be running and posting updates in your selected channel.
-
