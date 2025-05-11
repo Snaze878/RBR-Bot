@@ -3,6 +3,8 @@
 Welcome to the **RBR Discord Bot**!  
 This bot scrapes online leaderboards from [rallysimfans.hu](https://rallysimfans.hu/) and posts real-time updates to Discord. Whether you're tracking your rally team's progress or keeping tabs on the competition, this bot has you covered.
 
+Note - I also have a way smarter and more polished version of this bot here, but it also requires a database: https://github.com/Snaze878/RBR_Bot_MySQL
+
 ---
 
 ## 🏎️ Features
